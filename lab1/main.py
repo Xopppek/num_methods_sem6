@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 x0 = 1
-e = 2
-a = 3
-h = 0.01
-c = 0.67
+e = 3
+a = 5
+h = 0.05
+c = 0.8
 tau = c*h/a
 x_min = 0
-x_max = 30
+x_max = 20
 y_min = -0.1
 y_max = 1.1
 
@@ -50,7 +50,7 @@ def update(t):
     analyt_line.set_data(x, curr_analyt)
     return analyt_line
 
-anim = FuncAnimation(fig, update, frames=t, init_func=None, interval=5)
+anim = FuncAnimation(fig, update, frames=t, init_func=None, interval=3)
 
 x_sol_axis.legend()
 plt.show()
