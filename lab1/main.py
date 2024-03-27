@@ -1,20 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib.animation import PillowWriter
 
-x0 = 1
-e = 3
-a = 5
-h = 0.05
-c = 0.8
+x0 = -3
+e = 8
+a = 30
+h = 0.1
+l = 16
+c = 0.7
 tau = c*h/a
-x_min = 0
-x_max = 20
+x_min = -l
+x_max = l
 y_min = -0.1
 y_max = 1.1
 
 x = np.arange(x_min, x_max, h)
-t = np.arange(0, 5, tau)
+t = np.arange(2, 3.3, tau)
 
 def xi(x):
     return np.abs(x-x0)/e
@@ -29,11 +31,23 @@ def phi4(x):
 
 def phi(x):
     return phi1(x)
-def mu(x):
-    return np.zeros_like(x)
+def mu_l(x):
+    #return np.zeros_like(x)
+    return np.sin(x*40)
+def mu_r(x):
+    #return np.zeros_like(x)
+    return -np.cos(x*55)
 
 def analyt_sol(x, t):
-    return phi(x-a*t)*np.heaviside(x-a*t, 1) + mu(t - x/a) * np.heaviside(a*t-x, 0)
+    x_temp = l * np.arcsinh(np.sinh(1)*np.exp(-a*t/l))
+    temp = l * np.arcsinh(np.sinh(x[np.abs(x) <= x_temp]/l)*np.exp(a*t/l))
+    temp_l = t + l / a * np.log(np.sinh(np.abs(x[x < -x_temp])/l)/np.sinh(1))
+    temp_r = t + l / a * np.log(np.sinh(np.abs(x[x > x_temp])/l)/np.sinh(1))
+    res = np.zeros_like(x)
+    res[x < -x_temp] = mu_l(temp_l)
+    res[np.abs(x) <= x_temp] = phi(temp)
+    res[x > x_temp] = mu_r(temp_r)
+    return res
 
 fig, axes = plt.subplots(2, 1, figsize=(12, 8))
 x_sol_axis, x_err_axis = axes[0], axes[1]
@@ -43,7 +57,7 @@ x_sol_axis.set_ylim(y_min, y_max)
 x_err_axis.set_xlabel('x')
 x_err_axis.set_xlim(x_min, x_max)
 
-analyt_line, = x_sol_axis.plot([], [], label='analytical')
+analyt_line, = x_sol_axis.plot([], [])
 
 def update(t):
     curr_analyt = analyt_sol(x, t)
@@ -52,5 +66,7 @@ def update(t):
 
 anim = FuncAnimation(fig, update, frames=t, init_func=None, interval=3)
 
-x_sol_axis.legend()
+#x_sol_axis.legend()
+#writer = PillowWriter(fps=15,metadata=dict(artist='Me'), bitrate=900)
+#anim.save('analitical.gif', writer=writer)
 plt.show()
