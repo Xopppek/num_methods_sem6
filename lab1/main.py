@@ -70,3 +70,4 @@ anim = FuncAnimation(fig, update, frames=t, init_func=None, interval=3)
 #writer = PillowWriter(fps=15,metadata=dict(artist='Me'), bitrate=900)
 #anim.save('analitical.gif', writer=writer)
 plt.show()
+#check
