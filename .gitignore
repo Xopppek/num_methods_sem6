@@ -1,5 +1,7 @@
 test.py
 *.gif
+.vscode
+first_edit.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
