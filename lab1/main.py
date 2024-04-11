@@ -4,7 +4,7 @@ from matplotlib.animation import FuncAnimation
 
 x0 = -3
 e = 7
-a = 30
+a = 1
 h1 = 0.01
 h2 = 0.001
 l = 16
@@ -15,7 +15,7 @@ x_min = -l
 x_max = l
 y_min = -0.1
 y_max = 1.45
-t_end = 1.5
+t_end = 10
 
 def speed(x):
     return -a*np.tanh(x/l)
@@ -38,7 +38,7 @@ def phi4(x):
     return phi1(x)*np.cos(np.pi*xi(x)/2)**3
 
 def phi(x):
-    return phi2(x)
+    return phi1(x)
 def mu_l(t):
     #return np.sin(44*t)
     return 0
@@ -63,7 +63,7 @@ x_sol_axis.set_xlim(x_min, x_max)
 x_sol_axis.set_ylim(y_min, y_max)
 x_err_axis.set_xlabel('t')
 x_err_axis.set_xlim(0, t_end)
-x_err_axis.set_ylim(0, 0.1)
+x_err_axis.set_ylim(0, 1)
 
 
 analyt_line, = x_sol_axis.plot([], [], label = 'аналитическое решение', color='green')
@@ -118,7 +118,7 @@ def update(t):
     x_sol_axis.set_title(f'time = {t:.2f}')
     x_err_axis.set_title(r"""$\epsilon_1/\epsilon_2$ =""" + f'{err_h1.get_ydata()[-1]/(err_h2.get_ydata()[-1] + 0.0001):.2f}')
 
-anim = FuncAnimation(fig, update, frames=animation_t, init_func=None, interval=10)
+anim = FuncAnimation(fig, update, frames=animation_t, init_func=None, interval=1)
 
 x_sol_axis.legend()
 x_err_axis.legend()
