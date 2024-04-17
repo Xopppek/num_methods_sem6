@@ -40,11 +40,11 @@ def phi4(x):
 def phi(x):
     return phi4(x)
 def mu_l(t):
-    return np.sin(4*t)
-    #return 0
+    #return np.sin(4*t)
+    return 0
 def mu_r(t):
-    return -np.cos(t*5)
-    #return 0
+    #return -np.cos(t*5)
+    return 0
 
 def analyt_sol(x, t : float):
     x_temp = l * np.arcsinh(np.sinh(1)*np.exp(-a*t/l))

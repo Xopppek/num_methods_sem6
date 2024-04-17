@@ -41,7 +41,7 @@ def phi(x):
     return phi4(x)
 def mu_l(t):
     #return np.sin(4*t)
-    return phi1(t)
+    #return phi1(t)
     return 0
 def mu_r(t):
     #return np.sin(t*4)
@@ -64,7 +64,7 @@ x_sol_axis.set_xlim(x_min, x_max)
 x_sol_axis.set_ylim(y_min, y_max)
 x_err_axis.set_xlabel('t')
 x_err_axis.set_xlim(0, t_end)
-x_err_axis.set_ylim(0, 1)
+x_err_axis.set_ylim(0, 0.005)
 
 
 analyt_line, = x_sol_axis.plot([], [], label = 'аналитическое решение', color='green')
@@ -89,8 +89,8 @@ def update(t):
         err_temp = 0
         for i in range(10):
             h1_temp = np.zeros_like(x_h1)
-            h1_temp[0] = mu_l(t+i*tau(h1))
-            h1_temp[-1] = mu_r(t+i*tau(h1))
+            prev_step_h1[0] = mu_l(t+i*tau(h1))
+            prev_step_h1[-1] = mu_r(t+i*tau(h1))
             z =  prev_step_h1[l][1:-1] - tau(h1) * speed(x_h1[l][1:-1])/(2*h1) * (prev_step_h1[l][2:] - prev_step_h1[l][:-2]) + \
                 tau(h1)**2 * speed(x_h1[l][1:-1])/(2*h1**2) * (  speed(x_h1[l][1:-1] + h1/2) * (prev_step_h1[l][2:]-prev_step_h1[l][1:-1]) -\
                                                                speed(x_h1[l][1:-1]-h1/2)* (prev_step_h1[l][1:-1] - prev_step_h1[l][:-2]) )
@@ -111,8 +111,8 @@ def update(t):
         prev_step_h2 = num_line_h2.get_ydata() 
         for i in range(100):
             h2_temp = np.zeros_like(x_h2)
-            h2_temp[0] = mu_l(t+i*tau(h2))
-            h2_temp[-1] = mu_r(t+i*tau(h2))
+            prev_step_h2[0] = mu_l(t+i*tau(h2))
+            prev_step_h2[-1] = mu_r(t+i*tau(h2))
             z =  prev_step_h2[l][1:-1] - tau(h2) * speed(x_h2[l][1:-1])/(2*h2) * (prev_step_h2[l][2:] - prev_step_h2[l][:-2]) + \
                 tau(h2)**2 * speed(x_h2[l][1:-1])/(2*h2**2) * (  speed(x_h2[l][1:-1] + h2/2) * (prev_step_h2[l][2:]-prev_step_h2[l][1:-1]) -\
                                                                speed(x_h2[l][1:-1]-h2/2)* (prev_step_h2[l][1:-1] - prev_step_h2[l][:-2]) )
