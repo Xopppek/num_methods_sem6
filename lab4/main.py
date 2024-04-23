@@ -15,7 +15,7 @@ y_min = 0.9
 y_max = 2.5
 x_min = 0
 x_max = 1
-t_end = 1.5
+t_end = 1
 
 x_h1 = np.arange(x_min, x_max, h1)
 x_h2 = np.arange(x_min, x_max, h2)
@@ -68,11 +68,12 @@ def get_line(x, h, prev, t, old):
     num = (int)(anim_step/h)
     err_temp = 0
     curr = np.zeros_like(x)
-
     for i in range(num):
         curr[1:-1] = (tau(h)*a/h)**2 *(prev[2:] - 2*prev[1:-1] + prev[0:-2]) + tau(h)**2 *f(x[1:-1], t + i*tau(h)) - old[1:-1] + 2*prev[1:-1]
-        curr[0] = (mu_l(t+i*tau(h)) + curr[2]/(2*h) - 2*curr[1]/h) / (3*(1 - 1/(2*h)))
-        curr[-1] = (mu_r(t+i*tau(h)) - 4/h * curr[-2] + curr[-3]/h)/(1 - 3/h)
+        #curr[0] = (mu_l(t+i*tau(h)) + curr[2]/(2*h) - 2*curr[1]/h) / (3*(1 - 1/(2*h))) # левое 2 порядок
+        curr[0] = (mu_l(t+i*(tau(h))) - curr[1]/h)/(3-1/h) # левое 1 порядок
+        #curr[-1] = (mu_r(t+i*tau(h)) - 4/h * curr[-2] + curr[-3]/h)/(1 - 3/h) # правое 2 порядок
+        curr[-1] = (mu_r(t+i*tau(h)) - 2*curr[-2]/h)/(1-2/h) # правое 1 порядок
         old[:] = prev
         prev[:] = curr
     err_temp = np.max(np.abs(analyt_sol(x, t + num * tau(h)) - curr))
@@ -84,8 +85,10 @@ def update(t):
     if (t == 0):
         old_line_h1.set_data(x_h1, phi(x_h1))
         old_line_h2.set_data(x_h2, phi(x_h2))
-        num_line_h1.set_data(x_h1, phi(x_h1) + tau(h1)*psi(x_h1) + tau(h1)**2 / 2 *(a**2 * phi_xx(x_h1) + f(x_h1, 0)))
-        num_line_h2.set_data(x_h2, phi(x_h2) + tau(h2)*psi(x_h2) + tau(h2)**2 / 2 *(a**2 * phi_xx(x_h2) + f(x_h2, 0)))
+        #num_line_h1.set_data(x_h1, phi(x_h1) + tau(h1)*psi(x_h1) + tau(h1)**2 / 2 *(a**2 * phi_xx(x_h1) + f(x_h1, 0))) # начальное 2 порядок
+        #num_line_h2.set_data(x_h2, phi(x_h2) + tau(h2)*psi(x_h2) + tau(h2)**2 / 2 *(a**2 * phi_xx(x_h2) + f(x_h2, 0))) # начальное 2 порядок
+        num_line_h1.set_data(x_h1, phi(x_h1) + tau(h1)*psi(x_h1)) # начальное 1 порядок
+        num_line_h2.set_data(x_h2, phi(x_h2) + tau(h2)*psi(x_h2)) # начальное 1 порядок
         err_h1.set_data([0], [0])
         err_h2.set_data([0], [0])
     
