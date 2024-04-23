@@ -39,7 +39,7 @@ def phi4(x):
     return phi1(x)*np.cos(np.pi*xi(x)/2)**3
 
 def phi(x):
-    return phi1(x)
+    return phi4(x)
 def mu_l(t):
     #return np.sin(4*t)
     #return phi1(t)
@@ -47,6 +47,10 @@ def mu_l(t):
 def mu_r(t):
     #return np.sin(t*4)
     return 0
+
+def flux(r):
+    #return (r + np.abs(r))/(1+np.abs(r))
+    return (r**2 +r)/(r**2 +r+1)
 
 def analyt_sol(x, t : float):
     x_temp = l * np.arcsinh(np.sinh(1)*np.exp(-a*t/l))
@@ -84,17 +88,34 @@ def get_line(x, h, prev_step, t):
     #print(num)
     err_temp = 0
     for i in range(num):
-        h_temp = np.zeros_like(x)
+        upw_temp = np.zeros_like(x)
+        z = prev_step[l][1:] - speed(x[l][1:]) * tau(h)/h * (prev_step[l][1:] - prev_step[l][:-1])
+        upw_temp[l] = np.concatenate(([0], z))
+        z = prev_step[r][:-1] - speed(x[r][:-1]) * tau(h)/h * (prev_step[r][1:] - prev_step[r][:-1])
+        upw_temp[r] = np.concatenate((z, [0]))
+        upw_temp[0] = mu_l(t+i*tau(h))
+        upw_temp[-1] = mu_r(t+i*tau(h))
+
+
+        lax_temp = np.zeros_like(x)
         prev_step[0] = mu_l(t+i*tau(h))
         prev_step[-1] = mu_r(t+i*tau(h))
         z =  prev_step[l][1:-1] - tau(h) * speed(x[l][1:-1])/(2*h) * (prev_step[l][2:] - prev_step[l][:-2]) + \
             tau(h)**2 * speed(x[l][1:-1])/(2*h**2) * (  speed(x[l][1:-1] + h/2) * (prev_step[l][2:]-prev_step[l][1:-1]) -\
                                                                speed(x[l][1:-1]-h/2)* (prev_step[l][1:-1] - prev_step[l][:-2]) )
-        h_temp[l] = np.concatenate(([mu_l(t+i*tau(h))], z, [zerostate]))
+        lax_temp[l] = np.concatenate(([mu_l(t+i*tau(h))], z, [zerostate]))
         z = prev_step[r][1:-1] - tau(h) * speed(x[r][1:-1])/(2*h) * (prev_step[r][2:] - prev_step[r][:-2]) + \
                 tau(h)**2 * speed(x[r][1:-1])/(2*h**2) * (  speed(x[r][1:-1] + h/2) * (prev_step[r][2:]-prev_step[r][1:-1]) -\
                                                                speed(x[r][1:-1]-h/2)* (prev_step[r][1:-1] - prev_step[r][:-2]) )
+        lax_temp[r] = np.concatenate(([zerostate], z, [mu_r(t+i*tau(h))]))
+
+
+        h_temp = np.zeros_like(x)
+        z = upw_temp[l][1:-1] + flux((prev_step[l][1:-1] - prev_step[l][:-2]) / (prev_step[l][2:] - prev_step[l][1:-1]+0.00001)) * (lax_temp[l][1:-1] - upw_temp[l][1:-1])
+        h_temp[l] = np.concatenate(([mu_l(t+i*tau(h))], z, [zerostate]))
+        z = upw_temp[r][1:-1] + flux((prev_step[r][2:] - prev_step[r][1:-1]) / (prev_step[r][1:-1] - prev_step[r][:-2]+0.00001)) * (lax_temp[r][1:-1] - upw_temp[r][1:-1])
         h_temp[r] = np.concatenate(([zerostate], z, [mu_r(t+i*tau(h))]))
+
         prev_step = h_temp
     err_temp = np.max(np.abs(analyt_sol(x, t) - h_temp))
     return h_temp, err_temp

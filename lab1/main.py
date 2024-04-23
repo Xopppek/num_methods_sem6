@@ -38,7 +38,7 @@ def phi4(x):
     return phi1(x)*np.cos(np.pi*xi(x)/2)**3
 
 def phi(x):
-    return phi4(x)
+    return phi1(x)
 def mu_l(t):
     #return np.sin(4*t)
     return 0
@@ -94,7 +94,7 @@ def update(t):
             h1_temp[0] = mu_l(t+i*tau(h1))
             h1_temp[-1] = mu_r(t+i*tau(h1))
             prev_step_h1 = h1_temp
-            err_temp = np.max(np.abs(analyt_sol(x_h1, t) - h1_temp))
+        err_temp = np.max(np.abs(analyt_sol(x_h1, t) - h1_temp))
         num_line_h1.set_data(x_h1, h1_temp)
         err_h1.set_data(np.concatenate((err_h1.get_xdata(), [t])), np.concatenate((err_h1.get_ydata(), [err_temp])))
         #print(err_h1.get_ydata())
@@ -111,10 +111,11 @@ def update(t):
             h2_temp[0] = mu_l(t+i*tau(h2))
             h2_temp[-1] = mu_r(t+i*tau(h2))
             prev_step_h2 = h2_temp
-            err_temp = np.max(np.abs(analyt_sol(x_h2, t) - h2_temp))
+        err_temp = np.max(np.abs(analyt_sol(x_h2, t) - h2_temp))
         num_line_h2.set_data(x_h2, h2_temp)
         err_h2.set_data(np.concatenate((err_h2.get_xdata(), [t])), np.concatenate((err_h2.get_ydata(), [err_temp])))
 
+    x_err_axis.set_ylim(0, 1.3 * max(np.max(err_h1.get_ydata()), np.max(err_h2.get_ydata())))
     x_sol_axis.set_title(f'time = {t:.2f}')
     x_err_axis.set_title(r"""$\epsilon_1/\epsilon_2$ =""" + f'{err_h1.get_ydata()[-1]/(err_h2.get_ydata()[-1] + 0.0001):.2f}')
 
