@@ -24,7 +24,7 @@ x_h1 = np.arange(x_min, x_max, h1)
 x_h2 = np.arange(x_min, x_max, h2)
 t_h1 = np.arange(0, t_end, tau(h1))
 t_h2 = np.arange(0, t_end, tau(h2))
-anim_step = 0.1
+anim_step = 0.01
 animation_t = np.arange(0, t_end, tau(anim_step))
 
 def xi(x):
@@ -39,13 +39,14 @@ def phi4(x):
     return phi1(x)*np.cos(np.pi*xi(x)/2)**3
 
 def phi(x):
-    return phi4(x)
+    return phi1(x)
 def mu_l(t):
-    #return np.sin(4*t)
+    return np.sin(2*t)
     #return phi1(t)
     return 0
 def mu_r(t):
     #return np.sin(t*4)
+    #return phi3(t)
     return 0
 
 def flux(r):
@@ -111,33 +112,33 @@ def get_line(x, h, prev_step, t):
 
 
         h_temp = np.zeros_like(x)
-        z = upw_temp[l][1:-1] + flux((prev_step[l][1:-1] - prev_step[l][:-2]) / (prev_step[l][2:] - prev_step[l][1:-1]+0.00001)) * (lax_temp[l][1:-1] - upw_temp[l][1:-1])
+        z = upw_temp[l][1:-1] + flux((prev_step[l][1:-1] - prev_step[l][:-2]) / (prev_step[l][2:] - prev_step[l][1:-1]+0.00000001)) * (lax_temp[l][1:-1] - upw_temp[l][1:-1])
         h_temp[l] = np.concatenate(([mu_l(t+i*tau(h))], z, [zerostate]))
-        z = upw_temp[r][1:-1] + flux((prev_step[r][2:] - prev_step[r][1:-1]) / (prev_step[r][1:-1] - prev_step[r][:-2]+0.00001)) * (lax_temp[r][1:-1] - upw_temp[r][1:-1])
+        z = upw_temp[r][1:-1] + flux((prev_step[r][2:] - prev_step[r][1:-1]) / (prev_step[r][1:-1] - prev_step[r][:-2]+0.00000001)) * (lax_temp[r][1:-1] - upw_temp[r][1:-1])
         h_temp[r] = np.concatenate(([zerostate], z, [mu_r(t+i*tau(h))]))
 
         prev_step = h_temp
-    err_temp = np.max(np.abs(analyt_sol(x, t) - h_temp))
+    err_temp = np.max(np.abs(analyt_sol(x, t + num * tau(h)) - h_temp))
     return h_temp, err_temp
 
 
 def update(t):
-    analyt_line.set_data(x_h2, analyt_sol(x_h2, t))
+    analyt_line.set_data(x_h2, analyt_sol(x_h2, t + tau(anim_step)))
     if (t == 0):
         num_line_h1.set_data(x_h1, phi(x_h1))
         num_line_h2.set_data(x_h2, phi(x_h2))
         err_h1.set_data([0], [0])
         err_h2.set_data([0], [0])
-    else:
-        prev_step = num_line_h1.get_ydata()
-        h1_temp, err_temp = get_line(x_h1, h1, prev_step, t)
-        num_line_h1.set_data(x_h1, h1_temp)
-        err_h1.set_data(np.concatenate((err_h1.get_xdata(), [t])), np.concatenate((err_h1.get_ydata(), [err_temp])))
+    
+    prev_step = num_line_h1.get_ydata()
+    h1_temp, err_temp = get_line(x_h1, h1, prev_step, t)
+    num_line_h1.set_data(x_h1, h1_temp)
+    err_h1.set_data(np.concatenate((err_h1.get_xdata(), [t])), np.concatenate((err_h1.get_ydata(), [err_temp])))
 
-        prev_step = num_line_h2.get_ydata()
-        h2_temp, err_temp = get_line(x_h2, h2, prev_step, t)
-        num_line_h2.set_data(x_h2, h2_temp)
-        err_h2.set_data(np.concatenate((err_h2.get_xdata(), [t])), np.concatenate((err_h2.get_ydata(), [err_temp])))
+    prev_step = num_line_h2.get_ydata()
+    h2_temp, err_temp = get_line(x_h2, h2, prev_step, t)
+    num_line_h2.set_data(x_h2, h2_temp)
+    err_h2.set_data(np.concatenate((err_h2.get_xdata(), [t])), np.concatenate((err_h2.get_ydata(), [err_temp])))
         
     x_err_axis.set_ylim(0, 1.3 * max(np.max(err_h1.get_ydata()), np.max(err_h2.get_ydata())))
     x_sol_axis.set_title(f'time = {t:.2f}')
