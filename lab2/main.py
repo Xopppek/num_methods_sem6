@@ -39,9 +39,9 @@ def phi4(x):
     return phi1(x)*np.cos(np.pi*xi(x)/2)**3
 
 def phi(x):
-    return phi1(x)
+    return phi4(x)
 def mu_l(t):
-    return np.sin(2*t)
+    #return np.sin(2*t)
     #return phi1(t)
     return 0
 def mu_r(t):
@@ -120,7 +120,7 @@ def update(t):
         
     x_err_axis.set_ylim(0, 1.3 * max(np.max(err_h1.get_ydata()), np.max(err_h2.get_ydata())))
     x_sol_axis.set_title(f'time = {t:.2f}')
-    x_err_axis.set_title(r"""$\epsilon_1/\epsilon_2$ =""" + f'{err_h1.get_ydata()[-1]/(err_h2.get_ydata()[-1] + 0.000000001):.2f}')
+    x_err_axis.set_title(r"""$\epsilon_1/\epsilon_2$ =""" + f'{err_h1.get_ydata()[-1]/(err_h2.get_ydata()[-1] + 0.000000000000000000000001):.2f}')
 anim = FuncAnimation(fig, update, frames=animation_t, init_func=None, interval=2)
 
 x_sol_axis.legend()

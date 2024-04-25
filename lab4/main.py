@@ -6,7 +6,7 @@ a = np.sqrt(0.5)
 h1 = 0.01
 h2 = 0.001
 h3 = 0.1
-c = 0.6
+c = 0.7
 def tau(h):
     return c*h/a
 
@@ -19,7 +19,7 @@ t_end = 1
 x_h1 = np.arange(x_min, x_max+h1, h1)
 x_h2 = np.arange(x_min, x_max+h2, h2)
 x_h3 = np.arange(x_min, x_max+h3, h3)
-anim_step = 0.01
+anim_step = max(h1, h2, h3)
 animation_t = np.arange(0, t_end, tau(anim_step))
 
 def f(x, t):
@@ -65,18 +65,23 @@ err_h2, = x_err_axis.plot([], [], label = f'h={h2}', color='dodgerblue')
 #err_h3, = x_err_axis.plot([], [], label = f'h={h3}', color='red')
 
 def get_line(x, h, prev, t, old):
-    num = (int)(anim_step/h)
+    #num = (int)(anim_step/h)
+    num = 0
+    if (h==0.01):
+        num = 10
+    else:
+        num = 100
     err_temp = 0
     curr = np.zeros_like(x)
     for i in range(num):
         curr[1:-1] = (tau(h)*a/h)**2 *(prev[2:] - 2*prev[1:-1] + prev[0:-2]) + tau(h)**2 * f(x[1:-1], t + i*tau(h)) - old[1:-1] + 2*prev[1:-1]
-        curr[0] = (mu_l(t+i*tau(h)) + curr[2]/(2*h) - 2*curr[1]/h) / (3*(1 - 1/(2*h))) # левое 2 порядок
-        #curr[0] = (mu_l(t+i*(tau(h))) - curr[1]/h)/(3-1/h) # левое 1 порядок
-        curr[-1] = (mu_r(t+i*tau(h)) - 4/h * curr[-2] + curr[-3]/h)/(1 - 3/h) # правое 2 порядок
-        #curr[-1] = (mu_r(t+i*tau(h)) - 2*curr[-2]/h)/(1-2/h) # правое 1 порядок
+        curr[0] = (mu_l(t+(i+2)*tau(h)) + curr[2]/(2*h) - 2*curr[1]/h) / (3*(1 - 1/(2*h))) # левое 2 порядок
+        #curr[0] = (mu_l(t+(i+2)*(tau(h))) - curr[1]/h)/(3-1/h) # левое 1 порядок
+        curr[-1] = (mu_r(t+(i+2)*tau(h)) - 4/h * curr[-2] + curr[-3]/h)/(1 - 3/h) # правое 2 порядок
+        #curr[-1] = (mu_r(t+(i+2)*tau(h)) - 2*curr[-2]/h)/(1-2/h) # правое 1 порядок
         old[:] = prev
         prev[:] = curr
-    err_temp = np.max(np.abs(analyt_sol(x, t + num * tau(h)) - curr))
+    err_temp = np.max(np.abs(analyt_sol(x, t + (num+2) * tau(h)) - curr))
     return curr, err_temp, old
 
 
@@ -109,7 +114,7 @@ def update(t):
     old_line_h2.set_ydata(old)
     err_h2.set_data(np.concatenate((err_h2.get_xdata(), [t])), np.concatenate((err_h2.get_ydata(), [err_temp])))
 
-
+    #print(t, h1_temp)
     '''prev_step = num_line_h3.get_ydata()
     old = old_line_h3.get_ydata()
     h3_temp, err_temp, old = get_line(x_h3, h3, prev_step, t, old)

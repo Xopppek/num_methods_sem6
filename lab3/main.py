@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-x0 = -3
+x0 =0
 e = 7
 a = 1
 h1 = 0.01
@@ -24,7 +24,7 @@ x_h1 = np.arange(x_min, x_max, h1)
 x_h2 = np.arange(x_min, x_max, h2)
 t_h1 = np.arange(0, t_end, tau(h1))
 t_h2 = np.arange(0, t_end, tau(h2))
-anim_step = 0.01
+anim_step = 0.1
 animation_t = np.arange(0, t_end, tau(anim_step))
 
 def xi(x):
@@ -39,9 +39,9 @@ def phi4(x):
     return phi1(x)*np.cos(np.pi*xi(x)/2)**3
 
 def phi(x):
-    return phi1(x)
+    return phi4(x)
 def mu_l(t):
-    return np.sin(2*t)
+    #return np.sin(2*t)
     #return phi1(t)
     return 0
 def mu_r(t):
@@ -142,7 +142,7 @@ def update(t):
         
     x_err_axis.set_ylim(0, 1.3 * max(np.max(err_h1.get_ydata()), np.max(err_h2.get_ydata())))
     x_sol_axis.set_title(f'time = {t:.2f}')
-    x_err_axis.set_title(r"""$\epsilon_1/\epsilon_2$ =""" + f'{err_h1.get_ydata()[-1]/(err_h2.get_ydata()[-1] + 0.0001):.2f}')
+    x_err_axis.set_title(r"""$\epsilon_1/\epsilon_2$ =""" + f'{err_h1.get_ydata()[-1]/(err_h2.get_ydata()[-1]):.2f}')
 anim = FuncAnimation(fig, update, frames=animation_t, init_func=None, interval=2)
 
 x_sol_axis.legend()
