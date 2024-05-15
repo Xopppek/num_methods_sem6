@@ -85,7 +85,7 @@ def update(frame):
 
         num_line.set_data(x_h, u_new)
         ax.set_title(f'time = {frame:.2f}')
-        if (frame > t_end - tau(h)):
+        if (frame > t_end - 0.5* tau(h)):
             print(np.max(np.abs(u_new - u_analyt)))
 
     return num_line, analyt_line
