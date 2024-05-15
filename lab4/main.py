@@ -3,24 +3,20 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 a = np.sqrt(0.5)
-h1 = 0.01
-h2 = 0.001
-h3 = 0.1
 c = 0.7
 def tau(h):
     return c*h/a
 
 y_min = 0.9
-y_max = 2.5
+y_max = 1.8
 x_min = 0
 x_max = 1
 t_end = 1
 
-x_h1 = np.arange(x_min, x_max+h1, h1)
-x_h2 = np.arange(x_min, x_max+h2, h2)
-x_h3 = np.arange(x_min, x_max+h3, h3)
-anim_step = max(h1, h2, h3)
-animation_t = np.arange(0, t_end, tau(anim_step))
+h = 0.001
+
+x_h = np.arange(x_min, x_max+h, h)
+animation_t = np.arange(0, t_end+tau(h), tau(h))
 
 def f(x, t):
     return ((1+t)**2 -2*x**2)/8 /(1+x+x*t)**1.5
@@ -43,95 +39,60 @@ def mu_r(t):
 def analyt_sol(x, t):
     return np.sqrt(1+x+x*t)
 
-fig, axes = plt.subplots(2, 1, figsize=(12, 8))
-x_sol_axis, x_err_axis = axes[0], axes[1]
-x_sol_axis.set_xlim(x_min, x_max)
-x_sol_axis.set_ylim(y_min, y_max)
-x_err_axis.set_xlabel('t')
-x_err_axis.set_xlim(0, t_end)
-x_err_axis.set_ylim(0, 0.005)
+def leftSecond(u, frame, hs):
+    return (mu_l(frame) + (u[2]-4*u[1])/(2*hs)) /(3*(1-1/(2*hs)))
+
+def rightSecond(u, frame, hs):
+    return (mu_r(frame) + (u[-3] - 4 * u[-2])/hs)/(1 - 3/hs)
 
 
-analyt_line, = x_sol_axis.plot([], [], label = 'Аналитическое решение', color='green')
+fig, ax = plt.subplots(figsize=(12, 8))
+analyt_line, = ax.plot([], [], label = 'Аналитическое решение', color='green')
+num_line, =  ax.plot([], [], label = f'Крест h={h}', color='orange')
 
-num_line_h1, =  x_sol_axis.plot([], [], label = f'Крест h={h1}', color='orange')
-num_line_h2, =  x_sol_axis.plot([], [], label = f'Крест h={h2}', color='dodgerblue', ls='--')
-#num_line_h3, =  x_sol_axis.plot([], [], label = f'Крест h={h3}', color='red', ls=':')
-old_line_h1, = x_sol_axis.plot([], [], alpha=0)
-old_line_h2,= x_sol_axis.plot([], [], alpha=0)
-#old_line_h3,= x_sol_axis.plot([], [], alpha=0)
-err_h1, = x_err_axis.plot([], [], label = f'h={h1}', color='orange')
-err_h2, = x_err_axis.plot([], [], label = f'h={h2}', color='dodgerblue')
-#err_h3, = x_err_axis.plot([], [], label = f'h={h3}', color='red')
-
-def get_line(x, h, prev, t, old):
-    #num = (int)(anim_step/h)
-    num = 0
-    if (h==0.01):
-        num = 10
-    else:
-        num = 100
-    err_temp = 0
-    curr = np.zeros_like(x)
-    for i in range(num):
-        curr[1:-1] = (tau(h)*a/h)**2 *(prev[2:] - 2*prev[1:-1] + prev[0:-2]) + tau(h)**2 * f(x[1:-1], t + i*tau(h)) - old[1:-1] + 2*prev[1:-1]
-        curr[0] = (mu_l(t+(i+2)*tau(h)) + curr[2]/(2*h) - 2*curr[1]/h) / (3*(1 - 1/(2*h))) # левое 2 порядок
-        #curr[0] = (mu_l(t+(i+2)*(tau(h))) - curr[1]/h)/(3-1/h) # левое 1 порядок
-        curr[-1] = (mu_r(t+(i+2)*tau(h)) - 4/h * curr[-2] + curr[-3]/h)/(1 - 3/h) # правое 2 порядок
-        #curr[-1] = (mu_r(t+(i+2)*tau(h)) - 2*curr[-2]/h)/(1-2/h) # правое 1 порядок
-        old[:] = prev
-        prev[:] = curr
-    err_temp = np.max(np.abs(analyt_sol(x, t + (num+2) * tau(h)) - curr))
-    return curr, err_temp, old
+u0 = phi(x_h)
+u1 = phi(x_h) + tau(h)*psi(x_h) + tau(h)**2 / 2 *(a**2 * phi_xx(x_h) + f(x_h, 0))
+t = -1
 
 
-def update(t):
-    analyt_line.set_data(x_h2, analyt_sol(x_h2, t + tau(anim_step)))
+def init_animation():
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+    return num_line, analyt_line
+
+
+def update(frame):
+
+    global u0
+    global u1
+    global t
+    t+=1 
+
+    u_analyt = analyt_sol(x_h, frame)
+    analyt_line.set_data(x_h, u_analyt)
+
     if (t == 0):
-        old_line_h1.set_data(x_h1, phi(x_h1))
-        old_line_h2.set_data(x_h2, phi(x_h2))
-        #old_line_h3.set_data(x_h3, phi(x_h3))
-        num_line_h1.set_data(x_h1, phi(x_h1) + tau(h1)*psi(x_h1) + tau(h1)**2 / 2 *(a**2 * phi_xx(x_h1) + f(x_h1, 0))) # начальное 2 порядок
-        num_line_h2.set_data(x_h2, phi(x_h2) + tau(h2)*psi(x_h2) + tau(h2)**2 / 2 *(a**2 * phi_xx(x_h2) + f(x_h2, 0))) # начальное 2 порядок
-        #num_line_h3.set_data(x_h3, phi(x_h3) + tau(h3)*psi(x_h3) + tau(h3)**2 / 2 *(a**2 * phi_xx(x_h3) + f(x_h3, 0)))
-        #num_line_h1.set_data(x_h1, phi(x_h1) + tau(h1)*psi(x_h1)) # начальное 1 порядок
-        #num_line_h2.set_data(x_h2, phi(x_h2) + tau(h2)*psi(x_h2)) # начальное 1 порядок
-        err_h1.set_data([0], [0])
-        err_h2.set_data([0], [0])
-        #err_h3.set_data([0], [0])
+        num_line.set_data(x_h, u0)
+    elif (t == 1):
+        num_line.set_data(x_h, u1)
+    else:
+        u_new = np.copy(u1)
+        u_new[1:-1] = (a**2 * (u1[2:] - 2*u1[1:-1]+u1[:-2])/h**2 + f(x_h[1:-1], frame - tau(h)))*tau(h)**2-u0[1:-1]+2*u1[1:-1]
+        u_new[0] = leftSecond(u_new, frame, h)
+        u_new[-1] = rightSecond(u_new, frame, h)
+        u0 = np.copy(u1)
+        u1 = np.copy(u_new)
+
+        num_line.set_data(x_h, u_new)
+        ax.set_title(f'time = {frame:.2f}')
+        if (frame > t_end - tau(h)):
+            print(np.max(np.abs(u_new - u_analyt)))
+
+    return num_line, analyt_line
     
-    prev_step = num_line_h1.get_ydata()
-    old = old_line_h1.get_ydata()
-    h1_temp, err_temp, old = get_line(x_h1, h1, prev_step, t, old)
-    num_line_h1.set_ydata(h1_temp)
-    old_line_h1.set_ydata(old)
-    err_h1.set_data(np.concatenate((err_h1.get_xdata(), [t])), np.concatenate((err_h1.get_ydata(), [err_temp])))
+anim = FuncAnimation(fig=fig, func=update, frames=animation_t, init_func=init_animation, interval=h*3000, repeat=False, blit=True)
 
-    prev_step = num_line_h2.get_ydata()
-    old = old_line_h2.get_ydata()
-    h2_temp, err_temp, old = get_line(x_h2, h2, prev_step, t, old)
-    num_line_h2.set_ydata(h2_temp)
-    old_line_h2.set_ydata(old)
-    err_h2.set_data(np.concatenate((err_h2.get_xdata(), [t])), np.concatenate((err_h2.get_ydata(), [err_temp])))
+ax.grid(True)
+ax.legend()
 
-    #print(t, h1_temp)
-    '''prev_step = num_line_h3.get_ydata()
-    old = old_line_h3.get_ydata()
-    h3_temp, err_temp, old = get_line(x_h3, h3, prev_step, t, old)
-    num_line_h3.set_ydata(h3_temp)
-    old_line_h3.set_ydata(old)
-    err_h3.set_data(np.concatenate((err_h3.get_xdata(), [t])), np.concatenate((err_h3.get_ydata(), [err_temp])))'''
-    #x_sol_axis.set_ylim(y_min, 1.2*max(np.max(num_line_h1.get_ydata()), np.max(num_line_h2.get_ydata())))    
-    #x_err_axis.set_ylim(0, 1.3 * max(np.max(err_h1.get_ydata()), np.max(err_h2.get_ydata()), np.max(err_h3.get_ydata())))
-    x_err_axis.set_ylim(0, 1.3 * max(np.max(err_h1.get_ydata()), np.max(err_h2.get_ydata())))
-    x_sol_axis.set_title(f'time = {t:.2f}')
-    x_err_axis.set_title(r"""$\epsilon_1/\epsilon_2$ =""" + f'{err_h1.get_ydata()[-1]/(err_h2.get_ydata()[-1] + 0.00000001):.2f}')
-
-    
-    
-anim = FuncAnimation(fig, update, frames=animation_t, init_func=None, interval=200)
-
-x_sol_axis.legend()
-x_err_axis.legend()
-#anim.save('wtf5.gif')
 plt.show()
